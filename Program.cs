@@ -12,16 +12,41 @@ namespace FixCamera
         static void Main(string[] args)
         {
 
-            DsDevice[] devs = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-                        
+            List<DsDevice> devices = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice).ToList();
+
             // Filter that list down to the one with hyper-aggressive focus
-            var dev = devs.Where(d => d.Name.Equals("Microsoft® LifeCam Studio(TM)")).FirstOrDefault();
+            bool selected = false;
+
+            DsDevice device = null;
+            int index = 0;
+            Console.WriteLine("Select Device");
+            while (!selected)
+            {
+                foreach (var camera in devices)
+                {
+                    Console.WriteLine($"{index} {camera.Name}");
+                }
+
+                var selectedIndex = Console.ReadLine();
+
+                if (int.TryParse(selectedIndex, out int selection))
+                {
+                    if (selection >= 0 && selection < devices.Count())
+                    {
+                        device = devices[selection];
+                        selected = true;
+                        break;
+                    }
+                }
+
+                Console.WriteLine("Invalid selection, try again.");
+            }
 
                         // Get the list of connected video cameras
             if (new FilterGraph() is IFilterGraph2 graphBuilder)
             {
                 // Create a video capture filter for the device
-                graphBuilder.AddSourceFilterForMoniker(dev.Mon, null, dev.Name, out IBaseFilter capFilter);
+                graphBuilder.AddSourceFilterForMoniker(device.Mon, null, device.Name, out IBaseFilter capFilter);
 
                 // Cast that filter to IAMCameraControl from the DirectShowLib
                 IAMCameraControl _camera = capFilter as IAMCameraControl;
